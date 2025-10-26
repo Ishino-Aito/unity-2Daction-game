@@ -1,108 +1,106 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using static System.Net.Mime.MediaTypeNames;
-using System.Diagnostics;
 
 /// <summary>
-/// ƒvƒŒƒCƒ„[‚Ì‘Ì—Í‚Æ–hŒäƒVƒXƒeƒ€‚ğŠÇ—‚·‚éƒNƒ‰ƒX
+/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½“åŠ›ã¨è¢«ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚·ã‚¹ãƒ†ãƒ ã‚’ç®¡ç†ã™ã‚‹ã‚¯ãƒ©ã‚¹
 /// </summary>
 public class PlayerHealth : MonoBehaviour
 {
-    [Header("‘Ì—Íİ’è")]
+    [Header("ä½“åŠ›è¨­å®š")]
     [SerializeField] private float maxHealth = 100f;
     [SerializeField] private float currentHealth;
     [SerializeField] private float defaultDamageAmount = 34f;
     [SerializeField] private string gameOverSceneName = "GameOverScene";
 
-    [Header("UIİ’è")]
+    [Header("UIè¨­å®š")]
     [SerializeField] private Image hpGaugeImage;
     [SerializeField] private RectTransform hpGaugeRect;
     private float originalGaugeWidth;
 
-    [Header("–³“GŠÔİ’è")]
-    [SerializeField] private float invincibilityDuration = 1f; // –³“Gó‘Ô‚Ì‘±ŠÔ
-    [SerializeField] private float blinkInterval = 0.1f;      // “_–ÅŠÔŠu
-    private bool isInvincible = false;                        // –³“Gó‘Ôƒtƒ‰ƒO
-    private float invincibilityTimer = 0f;                    // –³“Gó‘Ôƒ^ƒCƒ}[
-    private float blinkTimer = 0f;                            // “_–Åƒ^ƒCƒ}[
-    private bool isVisible = true;                            // •\¦ó‘Ôƒtƒ‰ƒO
+    [Header("ç„¡æ•µæ™‚é–“è¨­å®š")]
+    [SerializeField] private float invincibilityDuration = 1f; // ç„¡æ•µæ™‚é–“ã®é•·ã•
+    [SerializeField] private float blinkInterval = 0.1f;      // ç‚¹æ»…é–“éš”
+    private bool isInvincible = false;                        // ç„¡æ•µæ™‚é–“ãƒ•ãƒ©ã‚°
+    private float invincibilityTimer = 0f;                    // ç„¡æ•µæ™‚é–“ã‚¿ã‚¤ãƒãƒ¼
+    private float blinkTimer = 0f;                            // ç‚¹æ»…ã‚¿ã‚¤ãƒãƒ¼
+    private bool isVisible = true;                            // è¡¨ç¤ºãƒ•ãƒ©ã‚°
 
-    [Header("ƒwƒ‹ƒƒbƒgİ’è")]
-    private bool hasHelmet = false;                           // ’Êíƒwƒ‹ƒƒbƒg‘•”õƒtƒ‰ƒO
-    private bool hasBlueHelmet = false;                       // Â‚¢ƒwƒ‹ƒƒbƒg‘•”õƒtƒ‰ƒO
+    [Header("ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆè¨­å®š")]
+    private bool hasHelmet = false;                           // é€šå¸¸ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆæ‰€æŒãƒ•ãƒ©ã‚°
+    private bool hasBlueHelmet = false;                       // é’ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆæ‰€æŒãƒ•ãƒ©ã‚°
 
-    // ƒRƒ“ƒ|[ƒlƒ“ƒgQÆ
+    // ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆå–å¾—
     private Animator animator;
     private SpriteRenderer spriteRenderer;
     private PlayerController playerController;
 
-    [Header("‰¹‹¿İ’è")]
-    [SerializeField] private AudioSource audioSource;          // AudioSourceƒRƒ“ƒ|[ƒlƒ“ƒg
-    [SerializeField] private AudioClip damageSE;               // ƒ_ƒ[ƒWŒø‰Ê‰¹ (se_dageki23)
-    [SerializeField] private AudioClip powerupSE;              // ƒpƒ[ƒAƒbƒvŒø‰Ê‰¹ (se_powerup)
-    [SerializeField][Range(0f, 1f)] private float damageVolume = 0.5f;   // ƒ_ƒ[ƒW‰¹‚Ì‰¹—Ê
-    [SerializeField][Range(0f, 1f)] private float powerupVolume = 0.5f;  // ƒpƒ[ƒAƒbƒv‰¹‚Ì‰¹—Ê
+    [Header("éŸ³éŸ¿è¨­å®š")]
+    [SerializeField] private AudioSource audioSource;          // AudioSourceã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
+    [SerializeField] private AudioClip damageSE;               // ãƒ€ãƒ¡ãƒ¼ã‚¸åŠ¹æœéŸ³ (se_dageki23)
+    [SerializeField] private AudioClip powerupSE;              // ãƒ‘ãƒ¯ãƒ¼ã‚¢ãƒƒãƒ—åŠ¹æœéŸ³ (se_powerup)
+    [SerializeField] [Range(0f, 1f)] private float damageVolume = 0.5f;   // ãƒ€ãƒ¡ãƒ¼ã‚¸éŸ³ã®éŸ³é‡
+    [SerializeField] [Range(0f, 1f)] private float powerupVolume = 0.5f;  // ãƒ‘ãƒ¯ãƒ¼ã‚¢ãƒƒãƒ—éŸ³ã®éŸ³é‡
 
     private void Start()
     {
-        // ‰Šú‰»ˆ—
+        // ä½“åŠ›ã‚’åˆæœŸåŒ–
         currentHealth = maxHealth;
 
-        // ‰¹‹¿ƒVƒXƒeƒ€‚Ì‰Šú‰»
+        // ã‚ªãƒ¼ãƒ‡ã‚£ã‚ªã‚·ã‚¹ãƒ†ãƒ ã®åˆæœŸåŒ–
         InitializeAudioSystem();
 
-        // •K—v‚ÈƒRƒ“ƒ|[ƒlƒ“ƒg‚ğæ“¾
+        // å¿…è¦ãªã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’å–å¾—
         spriteRenderer = GetComponent<SpriteRenderer>();
         playerController = GetComponent<PlayerController>();
         animator = GetComponent<Animator>();
 
         if (animator == null)
         {
-            Debug.LogWarning("AnimatorƒRƒ“ƒ|[ƒlƒ“ƒg‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB");
+            Debug.LogWarning("Animatorã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚");
         }
         else
         {
-            // ‰Šúó‘Ô‚Å‚Íƒwƒ‹ƒƒbƒg‚ğ‘•”õ‚µ‚Ä‚¢‚È‚¢ó‘Ô‚ÉƒŠƒZƒbƒg
+            // é–‹å§‹æ™‚ã¯ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è£…å‚™ã—ã¦ã„ãªã„çŠ¶æ…‹ã«ãƒªã‚»ãƒƒãƒˆ
             ResetHelmetStates();
         }
 
-        // HPƒQ[ƒW‚Ì‰Šú•‚ğ•Û‘¶
+        // HPã‚²ãƒ¼ã‚¸ã®åˆæœŸå¹…ã‚’ä¿å­˜
         if (hpGaugeRect != null)
         {
             originalGaugeWidth = hpGaugeRect.sizeDelta.x;
         }
 
-        // ‘Ì—ÍUIXV
+        // ä½“åŠ›UIã‚’æ›´æ–°
         UpdateHealthUI();
     }
 
     /// <summary>
-    /// ‰¹‹¿ƒVƒXƒeƒ€‚Ì‰Šú‰»
+    /// ã‚ªãƒ¼ãƒ‡ã‚£ã‚ªã‚·ã‚¹ãƒ†ãƒ ã®åˆæœŸåŒ–
     /// </summary>
     private void InitializeAudioSystem()
     {
-        // AudioSourceƒRƒ“ƒ|[ƒlƒ“ƒg‚Ìæ“¾‚Ü‚½‚Í’Ç‰Á
+        // AudioSourceã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®å–å¾—ã¾ãŸã¯è¿½åŠ 
         if (audioSource == null)
         {
             audioSource = GetComponent<AudioSource>();
             if (audioSource == null)
             {
                 audioSource = gameObject.AddComponent<AudioSource>();
-                Debug.Log("PlayerHealth: AudioSourceƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ©“®’Ç‰Á‚µ‚Ü‚µ‚½B");
+                Debug.Log("PlayerHealth: AudioSourceã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’è‡ªå‹•è¿½åŠ ã—ã¾ã—ãŸã€‚");
             }
         }
 
-        // AudioSource‚ÌŠî–{İ’è
-        audioSource.playOnAwake = false;  // ©“®Ä¶‚µ‚È‚¢
-        audioSource.spatialBlend = 0f;    // 2DƒTƒEƒ“ƒhi3DŒø‰Ê‚È‚µj
+        // AudioSourceã®åŸºæœ¬è¨­å®š
+        audioSource.playOnAwake = false;  // è‡ªå‹•å†ç”Ÿã—ãªã„
+        audioSource.spatialBlend = 0f;    // 2Dã‚µã‚¦ãƒ³ãƒ‰(3DåŠ¹æœãªã—)
     }
 
     /// <summary>
-    /// Œø‰Ê‰¹‚ğÄ¶‚·‚é
+    /// åŠ¹æœéŸ³ã‚’å†ç”Ÿ
     /// </summary>
-    /// <param name="clip">Ä¶‚·‚éAudioClip</param>
-    /// <param name="volume">‰¹—Êi0.0`1.0j</param>
+    /// <param name="clip">å†ç”Ÿã™ã‚‹AudioClip</param>
+    /// <param name="volume">éŸ³é‡ï¼ˆ0.0ï½1.0ï¼‰</param>
     private void PlaySE(AudioClip clip, float volume = 1.0f)
     {
         if (clip != null && audioSource != null)
@@ -111,13 +109,13 @@ public class PlayerHealth : MonoBehaviour
         }
         else
         {
-            if (clip == null) Debug.LogWarning("PlayerHealth: Ä¶‚µ‚æ‚¤‚Æ‚µ‚½Œø‰Ê‰¹‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB");
-            if (audioSource == null) Debug.LogWarning("PlayerHealth: AudioSource‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB");
+            if (clip == null) Debug.LogWarning("PlayerHealth: å†ç”Ÿã—ã‚ˆã†ã¨ã—ãŸåŠ¹æœéŸ³ãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚");
+            if (audioSource == null) Debug.LogWarning("PlayerHealth: AudioSourceãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚");
         }
     }
 
     /// <summary>
-    /// ƒ_ƒ[ƒWŒø‰Ê‰¹‚ğÄ¶‚·‚é
+    /// ãƒ€ãƒ¡ãƒ¼ã‚¸åŠ¹æœéŸ³ã‚’å†ç”Ÿ
     /// </summary>
     private void PlayDamageSE()
     {
@@ -125,7 +123,7 @@ public class PlayerHealth : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒpƒ[ƒAƒbƒvŒø‰Ê‰¹‚ğÄ¶‚·‚é
+    /// ãƒ‘ãƒ¯ãƒ¼ã‚¢ãƒƒãƒ—åŠ¹æœéŸ³ã‚’å†ç”Ÿ
     /// </summary>
     private void PlayPowerupSE()
     {
@@ -134,13 +132,13 @@ public class PlayerHealth : MonoBehaviour
 
     private void Update()
     {
-        // –³“Gó‘Ô‚Ìˆ—
+        // ç„¡æ•µæ™‚é–“ã®å‡¦ç†
         if (isInvincible)
         {
-            // –³“Gƒ^ƒCƒ}[‚ğŒ¸­
+            // ç„¡æ•µã‚¿ã‚¤ãƒãƒ¼ã‚’æ¸›å°‘
             invincibilityTimer -= Time.deltaTime;
 
-            // “_–Åˆ—
+            // ç‚¹æ»…å‡¦ç†
             blinkTimer -= Time.deltaTime;
             if (blinkTimer <= 0)
             {
@@ -152,21 +150,21 @@ public class PlayerHealth : MonoBehaviour
                 }
             }
 
-            // –³“Gó‘Ô‚ªI—¹‚µ‚½‚ç
+            // ç„¡æ•µæ™‚é–“ãŒçµ‚äº†ã—ãŸã‚‰
             if (invincibilityTimer <= 0)
             {
                 isInvincible = false;
                 if (spriteRenderer != null)
                 {
-                    spriteRenderer.enabled = true; // •K‚¸•\¦ó‘Ô‚É–ß‚·
+                    spriteRenderer.enabled = true; // å¿…ãšè¡¨ç¤ºçŠ¶æ…‹ã«æˆ»ã™
                 }
-                Debug.Log("–³“Gó‘Ô‚ªI—¹‚µ‚Ü‚µ‚½");
+                Debug.Log("ç„¡æ•µæ™‚é–“ãŒçµ‚äº†ã—ã¾ã—ãŸ");
             }
         }
     }
 
     /// <summary>
-    /// ‚·‚×‚Ä‚Ìƒwƒ‹ƒƒbƒgó‘Ô‚ğƒŠƒZƒbƒg‚·‚é
+    /// å…¨ã¦ã®ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆçŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆ
     /// </summary>
     private void ResetHelmetStates()
     {
@@ -177,177 +175,164 @@ public class PlayerHealth : MonoBehaviour
         {
             animator.SetBool("HasHelmet", false);
             animator.SetBool("HasBlueHelmet", false);
-            Debug.Log("ƒwƒ‹ƒƒbƒgó‘Ô‚ğƒŠƒZƒbƒg‚µ‚Ü‚µ‚½");
+            Debug.Log("ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆçŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆã—ã¾ã—ãŸ");
         }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // ƒIƒuƒWƒFƒNƒgƒ^ƒO‚Åˆ—‚ğ•ªŠò‚³‚¹‚é
+        // ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚¿ã‚°ã§å‡¦ç†ã‚’åˆ†å²ã•ã›ã‚‹
         switch (other.tag)
         {
             case "Helmet":
-                // ’Êí‚Ìƒwƒ‹ƒƒbƒgæ“¾ˆ—
+                // é€šå¸¸ã®ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆå–å¾—
                 EquipHelmet();
                 Destroy(other.gameObject);
                 break;
 
             case "BlueHelmet":
-                // Â‚¢ƒwƒ‹ƒƒbƒgæ“¾ˆ—
+                // é’ã„ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆå–å¾—
                 EquipBlueHelmet();
                 Destroy(other.gameObject);
                 break;
 
             case "Beam":
             case "Blue Beam":
-                // ƒr[ƒ€‚Æ‚ÌÕ“Ëˆ—
+                // ãƒ“ãƒ¼ãƒ ã¨ã®è¡çªå‡¦ç†
                 HandleBeamCollision(other);
                 break;
 
             case "Toge":
-                // ƒgƒQ‚È‚Ç‚Ìƒ_ƒ[ƒWƒIƒuƒWƒFƒNƒg‚Æ‚ÌÕ“Ëˆ—
+                // ãƒˆã‚²ãªã©ã®ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¨ã®è¡çªå‡¦ç†
                 if (!isInvincible)
                 {
                     TakeDamage(defaultDamageAmount);
-                    ActivateInvincibility(); // ƒ_ƒ[ƒW‚ğó‚¯‚½Œã‚É–³“Gó‘Ô‚ğ—LŒø‰»
+                    ActivateInvincibility(); // ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ãŸã‚‰ç„¡æ•µæ™‚é–“ã‚’èµ·å‹•
                 }
                 break;
         }
     }
 
     /// <summary>
-    /// –³“Gó‘Ô‚ğ—LŒø‚É‚·‚é
+    /// ç„¡æ•µæ™‚é–“ã‚’æœ‰åŠ¹åŒ–
     /// </summary>
     private void ActivateInvincibility()
     {
         isInvincible = true;
         invincibilityTimer = invincibilityDuration;
         blinkTimer = blinkInterval;
-        Debug.Log("–³“Gó‘Ô‚ğŠJn‚µ‚Ü‚µ‚½: " + invincibilityDuration + "•bŠÔ");
+        Debug.Log("ç„¡æ•µæ™‚é–“ã‚’é–‹å§‹ã—ã¾ã™: " + invincibilityDuration + "ç§’");
     }
 
     /// <summary>
-    /// ƒr[ƒ€‚Æ‚ÌÕ“Ëˆ—‚ğs‚¤
+    /// ãƒ“ãƒ¼ãƒ ã¨ã®è¡çªå‡¦ç†ã‚’å®Ÿè¡Œ
     /// </summary>
     private void HandleBeamCollision(Collider2D beam)
     {
-        // ƒr[ƒ€‚Ìí—Ş‚ğ”»’è
+        // ãƒ“ãƒ¼ãƒ ã®ç¨®é¡ã‚’åˆ¤å®š
         bool isBlueBeam = beam.CompareTag("Blue Beam");
 
-        // Â‚¢ƒwƒ‹ƒƒbƒg‚ğ‚Á‚Ä‚¢‚ÄAÂ‚¢ƒr[ƒ€‚ª“–‚½‚Á‚½ê‡‚Ì“Á•Êˆ—
+        // é’ã„ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è£…å‚™ã—ã¦ã„ã¦ã€é’ã„ãƒ“ãƒ¼ãƒ ã«å½“ãŸã£ãŸå ´åˆã®é˜²å¾¡å‡¦ç†
         if (hasBlueHelmet && isBlueBeam)
         {
-            Debug.Log("Â‚¢ƒwƒ‹ƒƒbƒg‚ªÂ‚¢ƒr[ƒ€‚ğ–h‚¢‚¾I");
+            Debug.Log("é’ã„ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆãŒé’ã„ãƒ“ãƒ¼ãƒ ã‚’é˜²ã„ã ï¼");
             RemoveBlueHelmet();
             Destroy(beam.gameObject);
             return;
         }
-        // ’Êí‚Ìƒwƒ‹ƒƒbƒg‚ğ‚Á‚Ä‚¢‚ÄA’Êí‚Ìƒr[ƒ€‚ª“–‚½‚Á‚½ê‡
+        // é€šå¸¸ã®ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è£…å‚™ã—ã¦ã„ã¦ã€é€šå¸¸ã®ãƒ“ãƒ¼ãƒ ã«å½“ãŸã£ãŸå ´åˆ
         else if (hasHelmet && !isBlueBeam)
         {
-            Debug.Log("ƒwƒ‹ƒƒbƒg‚ªƒr[ƒ€‚ğ–h‚¢‚¾I");
+            Debug.Log("ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆãŒãƒ“ãƒ¼ãƒ ã‚’é˜²ã„ã ï¼");
             RemoveHelmet();
             Destroy(beam.gameObject);
             return;
         }
 
-        // –³“Gó‘Ô‚Ìê‡‚Íƒ_ƒ[ƒW‚ğó‚¯‚È‚¢
+        // ç„¡æ•µæ™‚é–“ã®å ´åˆã¯ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ãªã„
         if (isInvincible)
         {
             Destroy(beam.gameObject);
             return;
         }
 
-        // ƒwƒ‹ƒƒbƒg‚ª‚È‚¢ê‡A‚Ü‚½‚Í‘Î‰‚·‚éƒwƒ‹ƒƒbƒg‚ª‚È‚¢ê‡‚Íƒ_ƒ[ƒW‚ğó‚¯‚é
-        float damageAmount = defaultDamageAmount;
-
-        // ƒr[ƒ€‚©‚çƒ_ƒ[ƒW—Ê‚ğæ“¾
-        if (isBlueBeam)
-        {
-            BlueBeamMovement blueBeam = beam.GetComponent<BlueBeamMovement>();
-            if (blueBeam != null)
-            {
-                damageAmount = blueBeam.GetDamageAmount();
-            }
-        }
-        else
-        {
-            BeamMovement normalBeam = beam.GetComponent<BeamMovement>();
-            if (normalBeam != null)
-            {
-                damageAmount = normalBeam.GetDamageAmount();
-            }
-        }
-
-        TakeDamage(damageAmount);
-        ActivateInvincibility(); // ƒ_ƒ[ƒW‚ğó‚¯‚½Œã‚É–³“Gó‘Ô‚ğ—LŒø‰»
+        // ä¸Šè¨˜ã®é˜²å¾¡å‡¦ç†ã‚’é€šéã—ãŸå ´åˆï¼ˆï¼ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆãŒä¸é©åˆã€ã¾ãŸã¯ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆãŒãªã„å ´åˆï¼‰ã¯å³æ­»
+        Debug.Log("é˜²å¾¡ã§ããªã„ãƒ“ãƒ¼ãƒ ã«æ¥è§¦ã—ãŸãŸã‚ã€å³æ­»ã—ã¾ã™ã€‚");
+        playerController.LoseLife();
         Destroy(beam.gameObject);
     }
 
     /// <summary>
-    /// ƒ_ƒ[ƒW‚ğó‚¯‚éˆ—
+    /// ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹å‡¦ç†
     /// </summary>
     private void TakeDamage(float damage)
     {
+        // é’ã„ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è£…å‚™ã—ã¦ã„ã‚‹å ´åˆã€ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’50%è»½æ¸›
+        if (hasBlueHelmet)
+        {
+            damage *= 0.5f;
+            Debug.Log("é’ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆåŠ¹æœ: ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’50%è»½æ¸› -> " + damage);
+        }
+
         currentHealth -= damage;
-        currentHealth = Mathf.Max(currentHealth, 0f); // ‘Ì—Í‚ª0–¢–‚É‚È‚ç‚È‚¢‚æ‚¤§ŒÀ
+        currentHealth = Mathf.Max(currentHealth, 0f); // ä½“åŠ›ã¯0æœªæº€ã«ãªã‚‰ãªã„ã‚ˆã†ã«
         UpdateHealthUI();
 
-        // ƒ_ƒ[ƒWŒø‰Ê‰¹‚ğÄ¶
+        // ãƒ€ãƒ¡ãƒ¼ã‚¸åŠ¹æœéŸ³ã‚’å†ç”Ÿ
         PlayDamageSE();
 
         if (currentHealth <= 0)
         {
-            Debug.Log("ƒvƒŒƒCƒ„[‚ªƒ_ƒ[ƒW‚Å€–S");
+            Debug.Log("ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒãƒ€ãƒ¡ãƒ¼ã‚¸ã§æ­»äº¡");
             playerController.LoseLife();
         }
     }
 
     /// <summary>
-    /// ŠO•”‚©‚ç’¼Úƒ_ƒ[ƒW‚ğ—^‚¦‚éŒöŠJƒƒ\ƒbƒh
+    /// å¤–éƒ¨ã‹ã‚‰ç›´æ¥ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’ä¸ãˆã‚‹å…¬é–‹ãƒ¡ã‚½ãƒƒãƒ‰
     /// </summary>
     public void ApplyDirectDamage(float damage)
     {
-        // –³“Gó‘Ô‚Ìê‡‚Íƒ_ƒ[ƒW‚ğó‚¯‚È‚¢‚æ‚¤‚É‚·‚é
+        // ç„¡æ•µæ™‚é–“ã®å ´åˆã¯ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ãªã„ã‚ˆã†ã«ã™ã‚‹
         if (isInvincible) return;
 
         TakeDamage(damage);
-        ActivateInvincibility(); // ƒ_ƒ[ƒW‚ğó‚¯‚½Œã‚É–³“Gó‘Ô‚ğ—LŒø‰»
+        ActivateInvincibility(); // ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ãŸã‚‰ç„¡æ•µæ™‚é–“ã‚’èµ·å‹•
     }
 
     /// <summary>
-    /// ‘Ì—ÍUI‚ğXV‚·‚é
+    /// ä½“åŠ›UIã‚’æ›´æ–°
     /// </summary>
     private void UpdateHealthUI()
     {
         float healthRatio = currentHealth / maxHealth;
 
-        // ImageŒ^‚ÌHPƒQ[ƒW‚ğXV
+        // Imageã‚¿ã‚¤ãƒ—ã®HPã‚²ãƒ¼ã‚¸ã‚’æ›´æ–°
         if (hpGaugeImage != null)
         {
             hpGaugeImage.fillAmount = healthRatio;
-            Debug.Log("HP•\¦ (Image): " + hpGaugeImage.fillAmount);
+            Debug.Log("HPè¡¨ç¤º (Image): " + hpGaugeImage.fillAmount);
         }
-        // RectTransformŒ^‚ÌHPƒQ[ƒW‚ğXV
+        // RectTransformã‚¿ã‚¤ãƒ—ã®HPã‚²ãƒ¼ã‚¸ã‚’æ›´æ–°
         else if (hpGaugeRect != null)
         {
             Vector2 sizeDelta = hpGaugeRect.sizeDelta;
             sizeDelta.x = originalGaugeWidth * healthRatio;
             hpGaugeRect.sizeDelta = sizeDelta;
-            Debug.Log("HP•\¦ (RectTransform): " + healthRatio);
+            Debug.Log("HPè¡¨ç¤º (RectTransform): " + healthRatio);
         }
         else
         {
-            Debug.LogWarning("HPƒQ[ƒWƒRƒ“ƒ|[ƒlƒ“ƒg‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB‘Ì—Í‚ª•\¦‚³‚ê‚Ü‚¹‚ñB");
+            Debug.LogWarning("HPã‚²ãƒ¼ã‚¸ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚ä½“åŠ›ã‚’è¡¨ç¤ºã§ãã¾ã›ã‚“ã€‚");
         }
     }
 
     /// <summary>
-    /// ’Êí‚Ìƒwƒ‹ƒƒbƒg‚ğ‘•”õ‚·‚é
+    /// é€šå¸¸ã®ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è£…å‚™
     /// </summary>
     public void EquipHelmet()
     {
-        // ‚·‚Å‚Éƒwƒ‹ƒƒbƒg‚ğ‚Á‚Ä‚¢‚éê‡‚Íˆê“x‰ğœ‚·‚é
+        // ã™ã§ã«ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è£…å‚™ã—ã¦ã„ã‚‹å ´åˆã¯ä¸€æ—¦è§£é™¤
         if (hasHelmet || hasBlueHelmet)
         {
             RemoveAllHelmets();
@@ -356,29 +341,29 @@ public class PlayerHealth : MonoBehaviour
         hasHelmet = true;
         hasBlueHelmet = false;
 
-        // ƒAƒjƒ[ƒ^[‚Ìƒpƒ‰ƒ[ƒ^‚ğİ’è
+        // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚¿ãƒ¼ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’è¨­å®š
         if (animator != null)
         {
             animator.SetBool("HasHelmet", true);
             animator.SetBool("HasBlueHelmet", false);
-            Debug.Log("’Êíƒwƒ‹ƒƒbƒg‘•”õ: ƒAƒjƒ[ƒVƒ‡ƒ“ƒpƒ‰ƒ[ƒ^XV");
+            Debug.Log("é€šå¸¸ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆè£…å‚™: ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿æ›´æ–°");
         }
         else
         {
-            Debug.LogWarning("Animator‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñBƒwƒ‹ƒƒbƒgó‘Ô‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ğXV‚Å‚«‚Ü‚¹‚ñ");
+            Debug.LogWarning("AnimatorãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆçŠ¶æ…‹ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãŒæ›´æ–°ã§ãã¾ã›ã‚“");
         }
 
-        // ƒpƒ[ƒAƒbƒvŒø‰Ê‰¹‚ğÄ¶iÅŒã‚É’Ç‰Áj
+        // ãƒ‘ãƒ¯ãƒ¼ã‚¢ãƒƒãƒ—åŠ¹æœéŸ³ã‚’å†ç”Ÿï¼ˆæœ€å¾Œã«å†ç”Ÿï¼‰
         PlayPowerupSE();
 
     }
 
     /// <summary>
-    /// Â‚¢ƒwƒ‹ƒƒbƒg‚ğ‘•”õ‚·‚é
+    /// é’ã„ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è£…å‚™
     /// </summary>
     public void EquipBlueHelmet()
     {
-        // ‚·‚Å‚Éƒwƒ‹ƒƒbƒg‚ğ‚Á‚Ä‚¢‚éê‡‚Íˆê“x‰ğœ‚·‚é
+        // ã™ã§ã«ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è£…å‚™ã—ã¦ã„ã‚‹å ´åˆã¯ä¸€æ—¦è§£é™¤
         if (hasHelmet || hasBlueHelmet)
         {
             RemoveAllHelmets();
@@ -387,16 +372,16 @@ public class PlayerHealth : MonoBehaviour
         hasBlueHelmet = true;
         hasHelmet = false;
 
-        // ƒAƒjƒ[ƒ^[‚Ìƒpƒ‰ƒ[ƒ^‚ğİ’è
+        // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚¿ãƒ¼ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’è¨­å®š
         if (animator != null)
         {
             animator.SetBool("HasBlueHelmet", true);
             animator.SetBool("HasHelmet", false);
-            Debug.Log("Â‚¢ƒwƒ‹ƒƒbƒg‘•”õ: ƒAƒjƒ[ƒVƒ‡ƒ“ƒpƒ‰ƒ[ƒ^XV");
+            Debug.Log("é’ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆè£…å‚™: ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿æ›´æ–°");
         }
         else
         {
-            Debug.LogWarning("Animator‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñBƒwƒ‹ƒƒbƒgó‘Ô‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ğXV‚Å‚«‚Ü‚¹‚ñ");
+            Debug.LogWarning("AnimatorãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆçŠ¶æ…‹ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãŒæ›´æ–°ã§ãã¾ã›ã‚“");
         }
 
         PlayPowerupSE();
@@ -404,66 +389,66 @@ public class PlayerHealth : MonoBehaviour
     }
 
     /// <summary>
-    /// ’Êí‚Ìƒwƒ‹ƒƒbƒg‚ğæ‚èŠO‚·
+    /// é€šå¸¸ã®ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è§£é™¤
     /// </summary>
     public void RemoveHelmet()
     {
         hasHelmet = false;
 
-        // ƒAƒjƒ[ƒ^[‚Ìƒpƒ‰ƒ[ƒ^‚ğXV
+        // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚¿ãƒ¼ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’æ›´æ–°
         if (animator != null)
         {
             animator.SetBool("HasHelmet", false);
-            Debug.Log("ƒwƒ‹ƒƒbƒg‰ğœ: ƒAƒjƒ[ƒVƒ‡ƒ“ƒpƒ‰ƒ[ƒ^XV");
+            Debug.Log("ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆè§£é™¤: ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿æ›´æ–°");
         }
         else
         {
-            Debug.LogWarning("Animator‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñBƒwƒ‹ƒƒbƒgó‘Ô‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ğXV‚Å‚«‚Ü‚¹‚ñ");
+            Debug.LogWarning("AnimatorãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆçŠ¶æ…‹ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãŒæ›´æ–°ã§ãã¾ã›ã‚“");
         }
     }
 
     /// <summary>
-    /// Â‚¢ƒwƒ‹ƒƒbƒg‚ğæ‚èŠO‚·
+    /// é’ã„ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è§£é™¤
     /// </summary>
     public void RemoveBlueHelmet()
     {
         hasBlueHelmet = false;
 
-        // ƒAƒjƒ[ƒ^[‚Ìƒpƒ‰ƒ[ƒ^‚ğXV
+        // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚¿ãƒ¼ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’æ›´æ–°
         if (animator != null)
         {
             animator.SetBool("HasBlueHelmet", false);
-            Debug.Log("Â‚¢ƒwƒ‹ƒƒbƒg‰ğœ: ƒAƒjƒ[ƒVƒ‡ƒ“ƒpƒ‰ƒ[ƒ^XV");
+            Debug.Log("é’ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆè§£é™¤: ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿æ›´æ–°");
         }
         else
         {
-            Debug.LogWarning("Animator‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñBƒwƒ‹ƒƒbƒgó‘Ô‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ğXV‚Å‚«‚Ü‚¹‚ñ");
+            Debug.LogWarning("AnimatorãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆçŠ¶æ…‹ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãŒæ›´æ–°ã§ãã¾ã›ã‚“");
         }
     }
 
     /// <summary>
-    /// ‚·‚×‚Ä‚Ìƒwƒ‹ƒƒbƒg‚ğæ‚èŠO‚·
+    /// å…¨ã¦ã®ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è§£é™¤
     /// </summary>
     private void RemoveAllHelmets()
     {
         hasHelmet = false;
         hasBlueHelmet = false;
 
-        // ƒAƒjƒ[ƒ^[‚Ìƒpƒ‰ƒ[ƒ^‚ğXV
+        // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚¿ãƒ¼ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’æ›´æ–°
         if (animator != null)
         {
             animator.SetBool("HasHelmet", false);
             animator.SetBool("HasBlueHelmet", false);
-            Debug.Log("‚·‚×‚Ä‚Ìƒwƒ‹ƒƒbƒg‰ğœ: ƒAƒjƒ[ƒVƒ‡ƒ“ƒpƒ‰ƒ[ƒ^XV");
+            Debug.Log("å…¨ã¦ã®ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è§£é™¤: ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿æ›´æ–°");
         }
         else
         {
-            Debug.LogWarning("Animator‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñBƒwƒ‹ƒƒbƒgó‘Ô‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ğXV‚Å‚«‚Ü‚¹‚ñ");
+            Debug.LogWarning("AnimatorãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆçŠ¶æ…‹ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãŒæ›´æ–°ã§ãã¾ã›ã‚“");
         }
     }
 
     /// <summary>
-    /// ’Êíƒwƒ‹ƒƒbƒg‚ğ‘•”õ‚µ‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğ•Ô‚·
+    /// é€šå¸¸ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è£…å‚™ã—ã¦ã„ã‚‹ã‹è¿”ã™
     /// </summary>
     public bool HasHelmet()
     {
@@ -471,7 +456,7 @@ public class PlayerHealth : MonoBehaviour
     }
 
     /// <summary>
-    /// Â‚¢ƒwƒ‹ƒƒbƒg‚ğ‘•”õ‚µ‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğ•Ô‚·
+    /// é’ã„ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è£…å‚™ã—ã¦ã„ã‚‹ã‹è¿”ã™
     /// </summary>
     public bool HasBlueHelmet()
     {
@@ -479,7 +464,7 @@ public class PlayerHealth : MonoBehaviour
     }
 
     /// <summary>
-    /// ‚¢‚¸‚ê‚©‚Ìƒwƒ‹ƒƒbƒg‚ğ‘•”õ‚µ‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğ•Ô‚·
+    /// ã„ãšã‚Œã‹ã®ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆã‚’è£…å‚™ã—ã¦ã„ã‚‹ã‹è¿”ã™
     /// </summary>
     public bool HasAnyHelmet()
     {
@@ -487,7 +472,7 @@ public class PlayerHealth : MonoBehaviour
     }
 
     /// <summary>
-    /// ‘Ì—Í‚ğÅ‘å’l‚ÉƒŠƒZƒbƒg‚·‚é
+    /// ä½“åŠ›ã‚’æœ€å¤§å€¤ã«ãƒªã‚»ãƒƒãƒˆ
     /// </summary>
     public void ResetHealth()
     {
@@ -496,7 +481,7 @@ public class PlayerHealth : MonoBehaviour
     }
 
     /// <summary>
-    /// –³“Gó‘Ô‚©‚Ç‚¤‚©‚ğ•Ô‚·
+    /// ç„¡æ•µæ™‚é–“ä¸­ã‹è¿”ã™
     /// </summary>
     public bool IsInvincible()
     {

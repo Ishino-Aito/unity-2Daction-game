@@ -3,8 +3,6 @@ using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using static System.Net.Mime.MediaTypeNames;
-using System.Diagnostics;
 
 /// <summary>
 /// プレイヤーキャラクターの動作を制御するコンポーネント
@@ -41,13 +39,17 @@ public class PlayerController : MonoBehaviour
     [Header("音響設定")]
     [SerializeField] private AudioSource audioSource;          // AudioSourceコンポーネント
     [SerializeField] private AudioClip jumpSE;                 // ジャンプ効果音
-    [SerializeField][Range(0f, 1f)] private float jumpVolume = 0.5f;  // ジャンプ音の音量
+    [SerializeField] [Range(0f, 1f)] private float jumpVolume = 0.5f;  // ジャンプ音の音量
 
     // ジャンプ制御用の変数
     [Header("ジャンプ制御")]
     [SerializeField] private float minJumpForce = 300.0f;       // 最小ジャンプ力
     [SerializeField] private float maxJumpForce = 500.0f;       // 最大ジャンプ力
     [SerializeField] private float jumpChargeTime = 0.3f;       // 最大ジャンプ力に達するまでの時間
+
+    [Header("ヘルメットジャンプ強化")]
+    [SerializeField] private float boostedMinJumpForce = 400.0f; // ヘルメット装備時の最小ジャンプ力
+    [SerializeField] private float boostedMaxJumpForce = 650.0f; // ヘルメット装備時の最大ジャンプ力
 
     // ジャンプ状態管理用の変数
     private bool isJumping = false;                             // ジャンプ中フラグ
@@ -311,7 +313,16 @@ public class PlayerController : MonoBehaviour
             // isJumpingフラグがtrue（＝地面でジャンプが開始された）の場合のみジャンプを実行
             if (isJumping)
             {
-                float jumpPower = Mathf.Lerp(minJumpForce, maxJumpForce, jumpChargeTimer / jumpChargeTime);
+                // ヘルメットの有無でジャンプ力を切り替える
+                float currentMinJump = minJumpForce;
+                float currentMaxJump = maxJumpForce;
+                if (playerHealth != null && playerHealth.HasHelmet())
+                {
+                    currentMinJump = boostedMinJumpForce;
+                    currentMaxJump = boostedMaxJumpForce;
+                }
+
+                float jumpPower = Mathf.Lerp(currentMinJump, currentMaxJump, jumpChargeTimer / jumpChargeTime);
                 rigid2d.AddForce(Vector2.up * jumpPower);
                 PlayJumpSE();
             }
